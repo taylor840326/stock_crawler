@@ -7,8 +7,16 @@ import numpy as np
 import json
 from concurrent.futures import ThreadPoolExecutor
 from kafka import KafkaProducer
+import configparser
 
-prod = KafkaProducer(bootstrap_servers=['192.168.182.129:9092'])
+conf = configparser.ConfigParser()
+conf.read("config.ini",encoding="utf-8")
+kafka_bootstrap_servers = conf.get("kafka","bootstrap_servers")
+kafka_topic = conf.get("kafka","topic")
+
+
+prod = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,compression_type='lz4',acks=1,retries=3)
+
 
 def map_func(code):
     stock_daily_result_array =b''
@@ -21,8 +29,7 @@ def map_func(code):
         stock_daily_results = res.to_json(orient="records")
         stocks = json.loads(stock_daily_results)
         for stock in stocks:
-            print(type(json.dumps(stock)))
-            prod.send(topic='stock',value=json.dumps(stock).encode())
+            prod.send(topic=kafka_topic,value=json.dumps(stock).encode())
     except Exception as e:
         print(code,e.args)
 

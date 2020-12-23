@@ -20,7 +20,7 @@ prod = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,compression_type=
 
 def map_func(code):
     stock_daily_result_array =b''
-    ts.set_token(u"97728e6a2de1a54697c1ce140f924990c2b966d01ca26b925ee10441")
+    ts.set_token(conf.get("tushare","token"))
     pro = ts.pro_api(timeout=30)
     try:
         #获取当日行情

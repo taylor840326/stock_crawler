@@ -53,7 +53,6 @@ if __name__ == "__main__":
     ts.set_token(conf.get("tushare", "token"))
     pro = ts.pro_api(timeout=30)
 
-    #判断如果给定了
     if trade_code is None:
         # 获取当前所有正常上市交易的股票列表
         stocks = pro.query('stock_basic', exchange='', list_status='L',

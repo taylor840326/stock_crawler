@@ -12,7 +12,21 @@ from kafka import KafkaProducer
 import configparser
 
 
-def map_func(code, start_date, end_date):
+# 本程序的参数为一个精确到日的时间戳，从环境变量中读取。
+# 如果没有参数就打印使用方法，然后退出。退出码为1
+trade_start_date = os.getenv("TRADE_START_DATE", "20000101")
+trade_end_date = os.getenv(
+        "TRADE_START_DATE", time.strftime("%Y%m%d", time.localtime()))
+trade_code = os.getenv("TRADE_CODE")
+
+
+#读取配置文件
+conf = configparser.ConfigParser()
+conf.read(sys.path[0]+"/config.ini", encoding="utf-8")
+kafka_bootstrap_servers = conf.get("kafka", "bootstrap_servers")
+kafka_topic = conf.get("kafka", "stock_market_daily_topic")
+
+def map_func(code):
     # 初始化Kafka生产者
     prod = KafkaProducer(bootstrap_servers=kafka_bootstrap_servers,
                          compression_type='lz4', acks=1, retries=3)
@@ -25,7 +39,7 @@ def map_func(code, start_date, end_date):
     try:
         # 获取当日行情
         res = pro.query(api_name=bytes("daily", encoding="utf-8"), ts_code=bytes(code, encoding="utf-8"),
-                        start_date=bytes(start_date, encoding="utf-8"), end_date=bytes(end_date, encoding="utf-8"))
+                        start_date=bytes(trade_start_date, encoding="utf-8"), end_date=bytes(trade_end_date, encoding="utf-8"))
         # #获取某个股票的日行情数据
         stock_daily_results = res.to_json(orient="records")
         stocks = json.loads(stock_daily_results)
@@ -36,18 +50,8 @@ def map_func(code, start_date, end_date):
 
 
 if __name__ == "__main__":
-    # 本程序的参数为一个精确到日的时间戳，从环境变量中读取。
-    # 如果没有参数就打印使用方法，然后退出。退出码为1
-    trade_start_date = os.getenv("TRADE_START_DATE", "20000101")
-    trade_end_date = os.getenv(
-        "TRADE_START_DATE", time.strftime("%Y%m%d", time.localtime()))
-    trade_code = os.getenv("TRADE_CODE")
 
-    #读取配置文件
-    conf = configparser.ConfigParser()
-    conf.read("config.ini", encoding="utf-8")
-    kafka_bootstrap_servers = conf.get("kafka", "bootstrap_servers")
-    kafka_topic = conf.get("kafka", "topic")
+
 
     #登录tushare接口
     ts.set_token(conf.get("tushare", "token"))

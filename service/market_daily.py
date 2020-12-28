@@ -19,6 +19,10 @@ trade_end_date = os.getenv(
         "TRADE_START_DATE", time.strftime("%Y%m%d", time.localtime()))
 trade_code = os.getenv("TRADE_CODE")
 
+print("trade_start_date =",trade_start_date)
+print("trade_end_date =",trade_end_date)
+print("trade_code=",trade_code)
+
 
 #读取配置文件
 conf = configparser.ConfigParser()
@@ -43,6 +47,8 @@ def map_func(code):
         # #获取某个股票的日行情数据
         stock_daily_results = res.to_json(orient="records")
         stocks = json.loads(stock_daily_results)
+        print("TradeCode = ",code)
+        time.sleep(3)
         for stock in stocks:
             prod.send(topic=kafka_topic, value=json.dumps(stock).encode())
     except Exception as e:
